@@ -12,8 +12,6 @@ SwiftUI doesn't have a built-in way to lock orientation for specific views. This
 - Support for all iOS orientations (portrait, landscape, upside down)
 - Automatic resolution of conflicting orientation constraints
 - Easy-to-use SwiftUI view modifier
-- Thread-safe implementation
-- Comprehensive unit tests
 
 ## Requirements
 
