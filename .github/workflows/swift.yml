@@ -20,7 +20,7 @@ jobs:
 
       - name: Build & Test for iOS
         run: |
-          xcodebuild build \
+          xcodebuild test \
             -scheme SwiftUIInterfaceOrientation \
             -destination "platform=iOS Simulator,OS=18.1,name=iPhone 16" \
             -configuration Debug \
