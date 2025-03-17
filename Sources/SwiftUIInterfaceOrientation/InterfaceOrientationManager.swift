@@ -94,12 +94,6 @@ public final class InterfaceOrientationManager {
         updateSupportedInterfaceOrientations()
     }
 
-    static func tearDown() {
-        configuration = nil
-        shared.orientations.removeAll()
-        shared.cancellables.removeAll()
-    }
-
     // MARK: Private API
 
     private func updateSupportedInterfaceOrientations() {
