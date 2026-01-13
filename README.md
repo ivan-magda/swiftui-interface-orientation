@@ -1,31 +1,28 @@
-# swiftui-interface-orientation
+# SwiftUI Interface Orientation
 
-A Swift package that provides orientation locking capabilities for SwiftUI views.
+[![Swift 5.5+](https://img.shields.io/badge/Swift-5.5+-orange.svg)](https://swift.org)
+[![iOS 14+](https://img.shields.io/badge/iOS-14+-blue.svg)](https://developer.apple.com/ios/)
+[![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Problem
+**Lock screen orientation per-view in SwiftUI. No UIKit subclassing, no hacks.**
 
-SwiftUI doesn't have a built-in way to lock orientation for specific views. This package addresses this limitation by providing a centralized orientation manager and a view modifier to control orientations on a per-view basis.
+```swift
+Text("This view stays portrait")
+    .supportedInterfaceOrientations(.portrait)
+```
 
-## Features
+That's it. The view locks to portrait. Navigate away, it unlocks. Conflicting constraints across multiple views? Handled automatically.
 
-- Lock orientation for specific SwiftUI views
-- Support for all iOS orientations (portrait, landscape, upside down)
-- Automatic resolution of conflicting orientation constraints
-- Easy-to-use SwiftUI view modifier
+## The Problem
 
-## Requirements
+SwiftUI has no native way to lock orientation for specific views. You either lock the entire app in Info.plist, or dive into UIKit lifecycle callbacks scattered across AppDelegate, SceneDelegate, and view controllers.
 
-- iOS 14.0 or later
-- Swift 5.5 or later
-- Xcode 13.0 or later
+This package gives you a single view modifier that just works.
 
 ## Installation
 
 ### Swift Package Manager
-
-Add the following dependency to your `Package.swift` file:
-
-https://github.com/ivan-magda/swiftui-interface-orientation.git
 
 ```swift
 dependencies: [
@@ -33,17 +30,11 @@ dependencies: [
 ]
 ```
 
-Or add it directly through Xcode:
-1. In Xcode, select "File" → "Add Packages..."
-2. Enter the URL: `https://github.com/ivan-magda/swiftui-interface-orientation.git`
-3. Choose the version rule (e.g., "Up to Next Major")
-4. Click "Add Package"
+Or in Xcode: **File → Add Packages** → paste the URL above.
 
-## Usage
+## Quick Start
 
-### Setup
-
-Configure the orientation manager early in your app lifecycle, typically in your App or Scene delegate:
+### 1. Configure the manager (once, at app launch)
 
 ```swift
 import SwiftUIInterfaceOrientation
@@ -51,11 +42,7 @@ import SwiftUIInterfaceOrientation
 @main
 struct MyApp: App {
     init() {
-        // Configure with default orientations from Info.plist
         InterfaceOrientationManager.configure()
-        
-        // Or specify custom defaults
-        // InterfaceOrientationManager.configure(configuration: .init(defaultOrientations: .portrait))
     }
     
     var body: some Scene {
@@ -66,109 +53,15 @@ struct MyApp: App {
 }
 ```
 
-### Using the View Modifier
-
-Apply the `.supportedInterfaceOrientations()` modifier to any SwiftUI view:
+### 2. Wire up iOS orientation callbacks
 
 ```swift
-import SwiftUI
-import SwiftUIInterfaceOrientation
-
-struct ContentView: View {
-    var body: some View {
-        NavigationView {
-            List {
-                NavigationLink("Normal View") {
-                    Text("This view uses the app's default orientations")
-                }
-                
-                NavigationLink("Portrait Only") {
-                    PortraitOnlyView()
-                }
-                
-                NavigationLink("Landscape Only") {
-                    LandscapeOnlyView()
-                }
-            }
-        }
-    }
-}
-
-struct PortraitOnlyView: View {
-    var body: some View {
-        Text("This view is locked to portrait orientation")
-            .supportedInterfaceOrientations(.portrait)
-    }
-}
-
-struct LandscapeOnlyView: View {
-    var body: some View {
-        Text("This view is locked to landscape orientation")
-            .supportedInterfaceOrientations([.landscapeLeft, .landscapeRight])
-    }
-}
-```
-
-### Advanced: Integration with iOS Delegate Methods
-
-For complete integration, you need to implement either the `UIApplicationDelegate` method or the `UIWindowSceneDelegate` method (for iOS 13+) to handle orientation requests:
-
-#### Option 1: Using UIApplicationDelegate (works on all iOS versions)
-
-```swift
-import UIKit
-import SwiftUIInterfaceOrientation
-
-class AppDelegate: UIResponder, UIApplicationDelegate {
-    // ... other AppDelegate code ...
-    
-    func application(
-        _ application: UIApplication,
-        supportedInterfaceOrientationsFor window: UIWindow?
-    ) -> UIInterfaceOrientationMask {
-        // Delegate to the orientation manager
-        return InterfaceOrientationManager.shared.supportedInterfaceOrientations
-    }
-}
-```
-
-#### Option 2: Using UIWindowSceneDelegate (iOS 13+)
-
-```swift
-import UIKit
-import SwiftUIInterfaceOrientation
-
-class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-    // ... other SceneDelegate code ...
-    
-    func windowScene(_ windowScene: UIWindowScene, 
-                   didUpdate previousCoordinateSpace: UICoordinateSpace, 
-                   interfaceOrientation previousInterfaceOrientation: UIInterfaceOrientation, 
-                   traitCollection previousTraitCollection: UITraitCollection) {
-        // Let the manager know when orientation changes
-        InterfaceOrientationManager.shared.updateSupportedInterfaceOrientations()
-    }
-    
-    func windowScene(_ windowScene: UIWindowScene, 
-                   supportedInterfaceOrientationsFor window: UIWindow) -> UIInterfaceOrientationMask {
-        // Delegate to the orientation manager
-        return InterfaceOrientationManager.shared.supportedInterfaceOrientations
-    }
-}
-```
-
-#### Option 3: Using SwiftUI's App protocol (iOS 14+)
-
-```swift
-import SwiftUI
-import SwiftUIInterfaceOrientation
-
 class OrientationDelegate: NSObject, UIApplicationDelegate {
     func application(
         _ application: UIApplication,
         supportedInterfaceOrientationsFor window: UIWindow?
     ) -> UIInterfaceOrientationMask {
-        return InterfaceOrientationManager.shared.supportedInterfaceOrientations
+        InterfaceOrientationManager.shared.supportedInterfaceOrientations
     }
 }
 
@@ -188,12 +81,77 @@ struct MyApp: App {
 }
 ```
 
+### 3. Lock any view to specific orientations
+
+```swift
+struct PortraitOnlyView: View {
+    var body: some View {
+        Text("Locked to portrait")
+            .supportedInterfaceOrientations(.portrait)
+    }
+}
+
+struct LandscapeOnlyView: View {
+    var body: some View {
+        VideoPlayer(player: player)
+            .supportedInterfaceOrientations([.landscapeLeft, .landscapeRight])
+    }
+}
+```
+
 ## How It Works
 
-The package uses a centralized manager (`InterfaceOrientationManager`) that keeps track of orientation constraints from active views. When views appear and disappear, they register and unregister their constraints with the manager.
+The package uses a centralized `InterfaceOrientationManager` that tracks orientation constraints from all active views:
 
-The manager computes the intersection of all active constraints to determine which orientations should be allowed. If the intersection would be empty (meaning there are conflicting constraints), it falls back to the default orientations.
+1. When a view with `.supportedInterfaceOrientations()` appears, it registers its constraint
+2. When the view disappears, the constraint is removed
+3. The manager computes the intersection of all active constraints
+4. If constraints conflict (intersection is empty), it falls back to your app's defaults from Info.plist
+
+This means nested views with different constraints "just work"—the most restrictive common orientation wins.
+
+## API
+
+### View Modifier
+
+```swift
+func supportedInterfaceOrientations(_ orientations: UIInterfaceOrientationMask) -> some View
+```
+
+### Configuration
+
+```swift
+// Use defaults from Info.plist
+InterfaceOrientationManager.configure()
+
+// Or specify custom defaults
+InterfaceOrientationManager.configure(
+    configuration: .init(defaultOrientations: .portrait)
+)
+```
+
+### Orientation Masks
+
+```swift
+.portrait           // Portrait only
+.landscapeLeft      // Landscape, home button on right
+.landscapeRight     // Landscape, home button on left
+.portraitUpsideDown // Upside down (iPad only effectively)
+.landscape          // Both landscape orientations
+.all                // All orientations
+.allButUpsideDown   // All except upside down
+```
+
+## Requirements
+
+- iOS 14.0+
+- Swift 5.5+
+- Xcode 13.0+
 
 ## License
 
-MIT License
+MIT License. See [LICENSE](LICENSE) for details.
+
+## Contributing
+
+Issues and PRs welcome.
