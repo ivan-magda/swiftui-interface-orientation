@@ -22,7 +22,7 @@ jobs:
         run: |
           xcodebuild test \
             -scheme SwiftUIInterfaceOrientation \
-            -destination "platform=iOS Simulator,OS=18.1,name=iPhone 16" \
+            -destination "platform=iOS Simulator,OS=18.4,name=iPhone 16" \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO

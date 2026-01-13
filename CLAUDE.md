@@ -11,13 +11,13 @@ swift build
 # Run all tests (requires iOS simulator)
 xcodebuild test \
   -scheme SwiftUIInterfaceOrientation \
-  -destination "platform=iOS Simulator,OS=18.1,name=iPhone 16" \
+  -destination "platform=iOS Simulator,OS=18.4,name=iPhone 16" \
   -configuration Debug
 
 # Run a single test
 xcodebuild test \
   -scheme SwiftUIInterfaceOrientation \
-  -destination "platform=iOS Simulator,OS=18.1,name=iPhone 16" \
+  -destination "platform=iOS Simulator,OS=18.4,name=iPhone 16" \
   -only-testing:SwiftUIInterfaceOrientationTests/InterfaceOrientationManagerTests/testCustomConfiguration
 
 # Lint
