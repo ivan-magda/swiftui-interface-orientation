@@ -27,10 +27,13 @@ jobs:
 
       - name: Build Documentation
         run: |
-          swift package --allow-writing-to-directory ./docs \
-            generate-documentation --target SwiftUIInterfaceOrientation \
-            --disable-indexing \
-            --transform-for-static-hosting \
+          xcodebuild docbuild \
+            -scheme SwiftUIInterfaceOrientation \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath .derivedData
+
+          $(xcrun --find docc) process-archive transform-for-static-hosting \
+            .derivedData/Build/Products/Debug-iphonesimulator/SwiftUIInterfaceOrientation.doccarchive \
             --hosting-base-path swiftui-interface-orientation \
             --output-path ./docs
 
