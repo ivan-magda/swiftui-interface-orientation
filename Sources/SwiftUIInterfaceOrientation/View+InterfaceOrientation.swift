@@ -1,11 +1,15 @@
 import SwiftUI
 
 extension View {
-    /// Restricts the interface orientations for this view.
+    /// Restricts the supported interface orientations while this view is visible.
     ///
-    /// Use this modifier to specify which orientations are allowed when this view is active.
-    /// When the view appears, it registers these constraints with the `InterfaceOrientationManager`.
-    /// When the view disappears, the constraints are automatically removed.
+    /// Use this modifier to constrain which device orientations are allowed when your view
+    /// is on screen. The constraints are registered with ``InterfaceOrientationManager`` when
+    /// the view appears and automatically removed when it disappears.
+    ///
+    /// When multiple views with orientation constraints are visible simultaneously, the
+    /// manager computes the intersection of all constraints. If no common orientations exist,
+    /// the default orientations are used instead.
     ///
     /// ```swift
     /// struct ContentView: View {
@@ -19,7 +23,7 @@ extension View {
     ///
     ///                 NavigationLink("Landscape-only view") {
     ///                     Text("This view is landscape only")
-    ///                         .supportedInterfaceOrientations([.landscapeLeft, .landscapeRight])
+    ///                         .supportedInterfaceOrientations(.landscape)
     ///                 }
     ///             }
     ///         }
@@ -27,9 +31,28 @@ extension View {
     /// }
     /// ```
     ///
+    /// For video players or media that benefits from landscape orientation:
+    ///
+    /// ```swift
+    /// struct VideoDetailView: View {
+    ///     var body: some View {
+    ///         VideoPlayer(player: player)
+    ///             .supportedInterfaceOrientations(.landscape)
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// To allow all orientations except upside down (common for iPhone apps):
+    ///
+    /// ```swift
+    /// MyContentView()
+    ///     .supportedInterfaceOrientations(.allButUpsideDown)
+    /// ```
+    ///
     /// - Parameter orientations: The interface orientations to allow for this view.
-    ///   Pass `nil` to remove any constraints.
-    /// - Returns: A view with the specified orientation constraints.
+    ///   Pass `nil` or an empty mask to remove constraints and allow the default orientations.
+    /// - Returns: A view that registers the specified orientation constraints with
+    ///   ``InterfaceOrientationManager`` for its lifetime.
     public func supportedInterfaceOrientations(_ orientations: UIInterfaceOrientationMask?) -> some View {
         modifier(InterfaceOrientationsViewModifier(orientations: orientations ?? []))
     }
