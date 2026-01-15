@@ -1,6 +1,6 @@
 # SwiftUI Interface Orientation
 
-[![Swift 5.5+](https://img.shields.io/badge/Swift-5.5+-orange.svg)](https://swift.org)
+[![Swift 6](https://img.shields.io/badge/Swift-6-orange.svg)](https://swift.org)
 [![iOS 14+](https://img.shields.io/badge/iOS-14+-blue.svg)](https://developer.apple.com/ios/)
 [![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -26,7 +26,7 @@ This package gives you a single view modifier that just works.
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/ivan-magda/swiftui-interface-orientation.git", from: "1.0.0")
+    .package(url: "https://github.com/ivan-magda/swiftui-interface-orientation.git", from: "1.1.0")
 ]
 ```
 
@@ -44,7 +44,7 @@ struct MyApp: App {
     init() {
         InterfaceOrientationManager.configure()
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -68,11 +68,11 @@ class OrientationDelegate: NSObject, UIApplicationDelegate {
 @main
 struct MyApp: App {
     @UIApplicationDelegateAdaptor(OrientationDelegate.self) var delegate
-    
+
     init() {
         InterfaceOrientationManager.configure()
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -145,8 +145,8 @@ InterfaceOrientationManager.configure(
 ## Requirements
 
 - iOS 14.0+
-- Swift 5.5+
-- Xcode 13.0+
+- Swift 6
+- Xcode 16.0+
 
 ## License
 
