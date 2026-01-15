@@ -2,9 +2,9 @@ import XCTest
 import UIKit
 @testable import SwiftUIInterfaceOrientation
 
+@MainActor
 final class InterfaceOrientationManagerTests: XCTestCase {
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
         InterfaceOrientationManager.configure(configuration: .init(defaultOrientations: .all))
     }
 

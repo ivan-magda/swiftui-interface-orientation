@@ -41,8 +41,9 @@ import UIKit
 ///
 /// - Note: Call ``configure(configuration:)`` before accessing ``shared`` if you need
 ///   custom default orientations.
+@MainActor
 public final class InterfaceOrientationManager {
-    private static let logger = Logger(
+    nonisolated private static let logger = Logger(
         subsystem: "com.swiftui.interface.orientation",
         category: String(describing: InterfaceOrientationManager.self)
     )
@@ -185,7 +186,7 @@ public final class InterfaceOrientationManager {
             .store(in: &cancellables)
     }
 
-    private static func loadOrientationsFromInfoPlist() -> UIInterfaceOrientationMask {
+    nonisolated private static func loadOrientationsFromInfoPlist() -> UIInterfaceOrientationMask {
         let plistOrientations = MainBundleInfo.supportedInterfaceOrientations
 
         if plistOrientations.isEmpty {

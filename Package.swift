@@ -21,6 +21,5 @@ let package = Package(
       name: "SwiftUIInterfaceOrientationTests",
       dependencies: ["SwiftUIInterfaceOrientation"]
     ),
-  ],
-  swiftLanguageModes: [.v5]
+  ]
 )
