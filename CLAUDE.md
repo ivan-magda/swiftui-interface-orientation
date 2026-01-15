@@ -42,7 +42,7 @@ Apps must wire the manager to iOS by implementing `application(_:supportedInterf
 
 ## Code Style
 
-- Swift 6.0 tools version with Swift 5 language mode
+- Swift 6.0 tools version with Swift 6 language mode
 - SwiftLint enforced with strict mode (see `.swiftlint.yml`)
 - Line length: 120 warning, 150 error
 - Force unwrapping triggers lint warnings (use `force_unwrapping` opt-in rule)
