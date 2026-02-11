@@ -1,4 +1,3 @@
-import Combine
 import OSLog
 import UIKit
 
@@ -65,7 +64,8 @@ public final class InterfaceOrientationManager {
 
     private let defaultOrientations: UIInterfaceOrientationMask
     private var orientations: [UUID: UIInterfaceOrientationMask] = [:]
-    private var cancellables = Set<AnyCancellable>()
+    private var orientationObserver: (any NSObjectProtocol)?
+    private var lastResolvedMask: UIInterfaceOrientationMask?
 
     /// The currently resolved interface orientations based on all registered constraints.
     ///
@@ -177,13 +177,35 @@ public final class InterfaceOrientationManager {
         }
     }
 
+    private func handleOrientationChange() {
+        guard !orientations.isEmpty else {
+            return
+        }
+        updateSupportedInterfaceOrientations()
+    }
+
+    private func updateSupportedInterfaceOrientationsIfNeeded() {
+        let currentMask = supportedInterfaceOrientations
+        guard currentMask != lastResolvedMask else {
+            return
+        }
+
+        lastResolvedMask = currentMask
+        Self.logger.debug("Supported orientations changed: \(currentMask.rawValue)")
+
+        updateSupportedInterfaceOrientations()
+    }
+
     private func setupOrientationChangeObserver() {
-        NotificationCenter.default
-            .publisher(for: UIDevice.orientationDidChangeNotification)
-            .sink { [weak self] _ in
-                self?.updateSupportedInterfaceOrientations()
+        orientationObserver = NotificationCenter.default.addObserver(
+            forName: UIDevice.orientationDidChangeNotification,
+            object: nil,
+            queue: nil
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleOrientationChange()
             }
-            .store(in: &cancellables)
+        }
     }
 
     nonisolated private static func loadOrientationsFromInfoPlist() -> UIInterfaceOrientationMask {
