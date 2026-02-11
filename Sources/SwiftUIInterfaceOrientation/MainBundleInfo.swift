@@ -5,8 +5,14 @@ import UIKit
 /// This enum provides type-safe access to Info.plist values, specifically for parsing
 /// the `UISupportedInterfaceOrientations` array into a `UIInterfaceOrientationMask`.
 enum MainBundleInfo {
-    /// The Info.plist dictionary from the main bundle.
     private static var infoDictionary: [String: Any]? { Bundle.main.infoDictionary }
+
+    private static let orientationToMaskMap: [String: UIInterfaceOrientationMask] = [
+        "UIInterfaceOrientationPortrait": .portrait,
+        "UIInterfaceOrientationPortraitUpsideDown": .portraitUpsideDown,
+        "UIInterfaceOrientationLandscapeLeft": .landscapeLeft,
+        "UIInterfaceOrientationLandscapeRight": .landscapeRight
+    ]
 
     /// The supported interface orientations as defined in the app's Info.plist.
     ///
@@ -25,21 +31,13 @@ enum MainBundleInfo {
     static var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         let plistOrientations = infoDictionary?["UISupportedInterfaceOrientations"] as? [String] ?? []
 
-        let orientationToMaskMap: [String: UIInterfaceOrientationMask] = [
-            "UIInterfaceOrientationPortrait": .portrait,
-            "UIInterfaceOrientationPortraitUpsideDown": .portraitUpsideDown,
-            "UIInterfaceOrientationLandscapeLeft": .landscapeLeft,
-            "UIInterfaceOrientationLandscapeRight": .landscapeRight
-        ]
-        // swiftlint:disable:next reduce_into
-        return plistOrientations.reduce([]) { combinedMask, orientationKey in
+        return plistOrientations.reduce(into: UIInterfaceOrientationMask()) { combinedMask, orientationKey in
             if let maskValue = orientationToMaskMap[orientationKey] {
-                return combinedMask.union(maskValue)
+                combinedMask.formUnion(maskValue)
             } else {
                 assertionFailure(
                     "Unknown value '\(orientationKey)' for Info.plist entry UISupportedInterfaceOrientations"
                 )
-                return combinedMask
             }
         }
     }
