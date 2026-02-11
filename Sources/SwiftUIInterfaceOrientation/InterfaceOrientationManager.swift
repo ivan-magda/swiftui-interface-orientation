@@ -154,9 +154,8 @@ public final class InterfaceOrientationManager {
     ///   - id: A unique identifier for the view.
     func register(orientations: UIInterfaceOrientationMask, id: UUID) {
         assert(!orientations.isEmpty, "Using an empty orientation mask is not allowed")
-
         self.orientations[id] = orientations
-        updateSupportedInterfaceOrientations()
+        updateSupportedInterfaceOrientationsIfNeeded()
     }
 
     /// Unregisters orientation constraints for a view.
@@ -164,7 +163,7 @@ public final class InterfaceOrientationManager {
     /// - Parameter id: The unique identifier of the view whose constraints should be removed.
     func unregister(orientationsWithID id: UUID) {
         orientations[id] = nil
-        updateSupportedInterfaceOrientations()
+        updateSupportedInterfaceOrientationsIfNeeded()
     }
 
     // MARK: Private API
