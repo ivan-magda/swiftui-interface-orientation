@@ -94,11 +94,9 @@ public final class InterfaceOrientationManager {
             return defaultOrientations
         }
 
-        let resolved = orientations.values.reduce(defaultOrientations) { result, orientation in
-            result.intersection(orientation)
+        let resolved = orientations.values.reduce(into: defaultOrientations) { result, orientation in
+            result.formIntersection(orientation)
         }
-
-        Self.logger.debug("Resolved supported interface orientations: \(String(describing: resolved))")
 
         if resolved.isEmpty {
             Self.logger.warning("Empty orientation mask resolved, using defaultOrientations instead")
