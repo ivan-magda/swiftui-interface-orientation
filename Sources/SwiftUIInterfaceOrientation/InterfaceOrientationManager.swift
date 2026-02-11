@@ -48,6 +48,7 @@ public final class InterfaceOrientationManager {
     )
 
     private static var configuration: Configuration?
+    private static var isInitialized = false
 
     /// The shared singleton instance of the orientation manager.
     ///
@@ -108,7 +109,9 @@ public final class InterfaceOrientationManager {
     }
 
     private init() {
+        Self.isInitialized = true
         defaultOrientations = Self.configuration?.defaultOrientations ?? Self.loadOrientationsFromInfoPlist()
+        lastResolvedMask = defaultOrientations
         setupOrientationChangeObserver()
         updateSupportedInterfaceOrientations()
     }
@@ -138,6 +141,7 @@ public final class InterfaceOrientationManager {
     /// - Parameter configuration: The configuration specifying default orientations.
     ///   Defaults to ``Configuration/fromInfoPlist()``.
     public static func configure(configuration: Configuration = .fromInfoPlist()) {
+        assert(!isInitialized, "configure() must be called before accessing InterfaceOrientationManager.shared")
         self.configuration = configuration
     }
 
