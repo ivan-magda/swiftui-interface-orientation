@@ -26,7 +26,7 @@ This package gives you a single view modifier that just works.
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/ivan-magda/swiftui-interface-orientation.git", from: "1.1.0")
+    .package(url: "https://github.com/ivan-magda/swiftui-interface-orientation.git", from: "1.2.0")
 ]
 ```
 
