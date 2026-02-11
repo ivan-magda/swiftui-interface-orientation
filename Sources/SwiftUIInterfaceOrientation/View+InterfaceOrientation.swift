@@ -14,7 +14,7 @@ extension View {
     /// ```swift
     /// struct ContentView: View {
     ///     var body: some View {
-    ///         NavigationView {
+    ///         NavigationView { // Or NavigationStack on iOS 16+
     ///             List {
     ///                 NavigationLink("Portrait-only view") {
     ///                     Text("This view is portrait only")
@@ -75,7 +75,7 @@ private struct InterfaceOrientationsViewModifier: ViewModifier {
                 InterfaceOrientationManager.shared.unregister(orientationsWithID: id)
             }
             .onChange(of: orientations) { newValue in
-                if orientations.isEmpty {
+                if newValue.isEmpty {
                     InterfaceOrientationManager.shared.unregister(orientationsWithID: id)
                 } else {
                     InterfaceOrientationManager.shared.register(orientations: newValue, id: id)
