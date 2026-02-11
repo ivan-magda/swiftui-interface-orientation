@@ -241,7 +241,7 @@ extension InterfaceOrientationManager {
     ///     configuration: .fromInfoPlist()
     /// )
     /// ```
-    public struct Configuration {
+    public struct Configuration: Sendable {
         /// The default interface orientations when no view constraints are active.
         ///
         /// These orientations are used as the base mask for computing supported orientations.
