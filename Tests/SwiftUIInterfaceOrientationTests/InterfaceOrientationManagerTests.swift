@@ -1,322 +1,310 @@
-import XCTest
+import Testing
 import UIKit
 @testable import SwiftUIInterfaceOrientation
 
+@Suite("InterfaceOrientationManager", .serialized)
 @MainActor
-final class InterfaceOrientationManagerTests: XCTestCase {
-    private var manager: InterfaceOrientationManager { InterfaceOrientationManager.shared }
+struct InterfaceOrientationManagerTests {
 
     // MARK: - Default Orientations
 
-    func testDefaultOrientationsWhenNoConstraintsRegistered() {
-        XCTAssertFalse(manager.supportedInterfaceOrientations.isEmpty)
-    }
+    @Suite("Default Orientations")
+    @MainActor
+    struct DefaultOrientations {
+        private let manager = InterfaceOrientationManager.shared
 
-    func testDefaultOrientationsAreNonEmpty() {
-        let defaults = manager.supportedInterfaceOrientations
-        XCTAssertFalse(defaults.isEmpty)
-        XCTAssertTrue(defaults.contains(.portrait) || defaults.contains(.landscape))
+        @Test("Returns non-empty mask when no constraints registered")
+        func defaultOrientationsNonEmpty() {
+            #expect(!manager.supportedInterfaceOrientations.isEmpty)
+        }
+
+        @Test("Contains portrait or landscape by default")
+        func defaultContainsPortraitOrLandscape() {
+            let defaults = manager.supportedInterfaceOrientations
+            #expect(!defaults.isEmpty)
+            #expect(defaults.contains(.portrait) || defaults.contains(.landscape))
+        }
     }
 
     // MARK: - Single Constraint Registration
 
-    func testSinglePortraitConstraint() {
-        let id = UUID()
+    @Suite("Single Constraint Registration", .tags(.registration))
+    @MainActor
+    struct SingleConstraint {
+        private let manager = InterfaceOrientationManager.shared
 
-        manager.register(orientations: .portrait, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .portrait)
-
-        manager.unregister(orientationsWithID: id)
-    }
-
-    func testSingleLandscapeConstraint() {
-        let id = UUID()
-
-        manager.register(orientations: .landscape, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .landscape)
-
-        manager.unregister(orientationsWithID: id)
-    }
-
-    func testSingleAllButUpsideDownConstraint() {
-        let id = UUID()
-
-        manager.register(orientations: .allButUpsideDown, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .allButUpsideDown)
-
-        manager.unregister(orientationsWithID: id)
-    }
-
-    func testSingleLandscapeLeftConstraint() {
-        let id = UUID()
-
-        manager.register(orientations: .landscapeLeft, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .landscapeLeft)
-
-        manager.unregister(orientationsWithID: id)
-    }
-
-    func testSingleLandscapeRightConstraint() {
-        let id = UUID()
-
-        manager.register(orientations: .landscapeRight, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .landscapeRight)
-
-        manager.unregister(orientationsWithID: id)
+        @Test(
+            "Registers a single constraint",
+            arguments: [
+                (UIInterfaceOrientationMask.portrait, "portrait"),
+                (.landscape, "landscape"),
+                (.allButUpsideDown, "allButUpsideDown"),
+                (.landscapeLeft, "landscapeLeft"),
+                (.landscapeRight, "landscapeRight")
+            ]
+        )
+        func singleConstraint(mask: UIInterfaceOrientationMask, name: String) {
+            let id = UUID()
+            defer { manager.unregister(orientationsWithID: id) }
+            manager.register(orientations: mask, id: id)
+            #expect(manager.supportedInterfaceOrientations == mask)
+        }
     }
 
     // MARK: - Multiple Constraints with Intersection
 
-    func testTwoCompatibleConstraintsIntersection() {
-        let id1 = UUID()
-        let id2 = UUID()
+    @Suite("Multiple Constraints with Intersection", .tags(.intersection))
+    @MainActor
+    struct MultipleConstraints {
+        private let manager = InterfaceOrientationManager.shared
 
-        manager.register(orientations: .allButUpsideDown, id: id1)
-        manager.register(orientations: .portrait, id: id2)
+        @Test(
+            "Intersection of two masks",
+            arguments: [
+                (
+                    UIInterfaceOrientationMask.allButUpsideDown,
+                    UIInterfaceOrientationMask.portrait,
+                    UIInterfaceOrientationMask.portrait
+                ),
+                (.landscape, .landscapeLeft, .landscapeLeft),
+                (.allButUpsideDown, .landscape, .landscape)
+            ]
+        )
+        func intersection(
+            mask1: UIInterfaceOrientationMask,
+            mask2: UIInterfaceOrientationMask,
+            expected: UIInterfaceOrientationMask
+        ) {
+            let id1 = UUID()
+            let id2 = UUID()
+            defer {
+                manager.unregister(orientationsWithID: id1)
+                manager.unregister(orientationsWithID: id2)
+            }
+            manager.register(orientations: mask1, id: id1)
+            manager.register(orientations: mask2, id: id2)
+            #expect(manager.supportedInterfaceOrientations == expected)
+        }
 
-        // allButUpsideDown ∩ portrait = portrait
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .portrait)
+        @Test("Multiple identical portrait constraints")
+        func multiplePortraitConstraints() {
+            let id1 = UUID()
+            let id2 = UUID()
+            let id3 = UUID()
+            defer {
+                manager.unregister(orientationsWithID: id1)
+                manager.unregister(orientationsWithID: id2)
+                manager.unregister(orientationsWithID: id3)
+            }
 
-        manager.unregister(orientationsWithID: id1)
-        manager.unregister(orientationsWithID: id2)
-    }
+            manager.register(orientations: .portrait, id: id1)
+            manager.register(orientations: .portrait, id: id2)
+            manager.register(orientations: .portrait, id: id3)
 
-    func testMultiplePortraitConstraints() {
-        let id1 = UUID()
-        let id2 = UUID()
-        let id3 = UUID()
-
-        manager.register(orientations: .portrait, id: id1)
-        manager.register(orientations: .portrait, id: id2)
-        manager.register(orientations: .portrait, id: id3)
-
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .portrait)
-
-        manager.unregister(orientationsWithID: id1)
-        manager.unregister(orientationsWithID: id2)
-        manager.unregister(orientationsWithID: id3)
-    }
-
-    func testLandscapeLeftAndLandscapeIntersection() {
-        let id1 = UUID()
-        let id2 = UUID()
-
-        manager.register(orientations: .landscape, id: id1)
-        manager.register(orientations: .landscapeLeft, id: id2)
-
-        // landscape ∩ landscapeLeft = landscapeLeft
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .landscapeLeft)
-
-        manager.unregister(orientationsWithID: id1)
-        manager.unregister(orientationsWithID: id2)
-    }
-
-    func testAllButUpsideDownAndLandscapeIntersection() {
-        let id1 = UUID()
-        let id2 = UUID()
-
-        manager.register(orientations: .allButUpsideDown, id: id1)
-        manager.register(orientations: .landscape, id: id2)
-
-        // allButUpsideDown ∩ landscape = landscape
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .landscape)
-
-        manager.unregister(orientationsWithID: id1)
-        manager.unregister(orientationsWithID: id2)
+            #expect(manager.supportedInterfaceOrientations == .portrait)
+        }
     }
 
     // MARK: - Empty Intersection Fallback
 
-    func testConflictingConstraintsFallsBackToDefault() {
-        let defaultOrientations = manager.supportedInterfaceOrientations
-        let id1 = UUID()
-        let id2 = UUID()
+    @Suite("Empty Intersection Fallback", .tags(.intersection))
+    @MainActor
+    struct EmptyIntersectionFallback {
+        private let manager = InterfaceOrientationManager.shared
 
-        manager.register(orientations: .portrait, id: id1)
-        manager.register(orientations: .landscape, id: id2)
+        @Test("Conflicting constraints fall back to default")
+        func conflictingFallsBackToDefault() {
+            let defaultOrientations = manager.supportedInterfaceOrientations
+            let id1 = UUID()
+            let id2 = UUID()
+            defer {
+                manager.unregister(orientationsWithID: id1)
+                manager.unregister(orientationsWithID: id2)
+            }
 
-        // portrait ∩ landscape = ∅, falls back to default
-        XCTAssertEqual(manager.supportedInterfaceOrientations, defaultOrientations)
+            manager.register(orientations: .portrait, id: id1)
+            manager.register(orientations: .landscape, id: id2)
 
-        manager.unregister(orientationsWithID: id1)
-        manager.unregister(orientationsWithID: id2)
-    }
+            #expect(manager.supportedInterfaceOrientations == defaultOrientations)
+        }
 
-    func testLandscapeLeftAndLandscapeRightConflict() {
-        let defaultOrientations = manager.supportedInterfaceOrientations
-        let id1 = UUID()
-        let id2 = UUID()
+        @Test("LandscapeLeft and landscapeRight conflict falls back to default")
+        func landscapeLeftRightConflict() {
+            let defaultOrientations = manager.supportedInterfaceOrientations
+            let id1 = UUID()
+            let id2 = UUID()
+            defer {
+                manager.unregister(orientationsWithID: id1)
+                manager.unregister(orientationsWithID: id2)
+            }
 
-        manager.register(orientations: .landscapeLeft, id: id1)
-        manager.register(orientations: .landscapeRight, id: id2)
+            manager.register(orientations: .landscapeLeft, id: id1)
+            manager.register(orientations: .landscapeRight, id: id2)
 
-        // landscapeLeft ∩ landscapeRight = ∅, falls back to default
-        XCTAssertEqual(manager.supportedInterfaceOrientations, defaultOrientations)
-
-        manager.unregister(orientationsWithID: id1)
-        manager.unregister(orientationsWithID: id2)
+            #expect(manager.supportedInterfaceOrientations == defaultOrientations)
+        }
     }
 
     // MARK: - Unregistration
 
-    func testUnregisterRestoresDefaultOrientations() {
-        let defaultOrientations = manager.supportedInterfaceOrientations
-        let id = UUID()
+    @Suite("Unregistration", .tags(.registration))
+    @MainActor
+    struct Unregistration {
+        private let manager = InterfaceOrientationManager.shared
 
-        manager.register(orientations: .portrait, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .portrait)
+        @Test("Unregister restores default orientations")
+        func unregisterRestoresDefault() {
+            let defaultOrientations = manager.supportedInterfaceOrientations
+            let id = UUID()
 
-        manager.unregister(orientationsWithID: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, defaultOrientations)
-    }
+            manager.register(orientations: .portrait, id: id)
+            #expect(manager.supportedInterfaceOrientations == .portrait)
 
-    func testUnregisterOneOfMultipleConstraints() {
-        let id1 = UUID()
-        let id2 = UUID()
+            manager.unregister(orientationsWithID: id)
+            #expect(manager.supportedInterfaceOrientations == defaultOrientations)
+        }
 
-        manager.register(orientations: .allButUpsideDown, id: id1)
-        manager.register(orientations: .portrait, id: id2)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .portrait)
+        @Test("Unregister one of multiple constraints")
+        func unregisterOneOfMultiple() {
+            let id1 = UUID()
+            let id2 = UUID()
+            defer { manager.unregister(orientationsWithID: id1) }
 
-        manager.unregister(orientationsWithID: id2)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .allButUpsideDown)
+            manager.register(orientations: .allButUpsideDown, id: id1)
+            manager.register(orientations: .portrait, id: id2)
+            #expect(manager.supportedInterfaceOrientations == .portrait)
 
-        manager.unregister(orientationsWithID: id1)
-    }
+            manager.unregister(orientationsWithID: id2)
+            #expect(manager.supportedInterfaceOrientations == .allButUpsideDown)
+        }
 
-    func testUnregisterNonExistentIdHasNoEffect() {
-        let id = UUID()
-        let nonExistentId = UUID()
+        @Test("Unregister non-existent ID has no effect")
+        func unregisterNonExistentId() {
+            let id = UUID()
+            let nonExistentId = UUID()
+            defer { manager.unregister(orientationsWithID: id) }
 
-        manager.register(orientations: .portrait, id: id)
-        manager.unregister(orientationsWithID: nonExistentId)
+            manager.register(orientations: .portrait, id: id)
+            manager.unregister(orientationsWithID: nonExistentId)
 
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .portrait)
+            #expect(manager.supportedInterfaceOrientations == .portrait)
+        }
 
-        manager.unregister(orientationsWithID: id)
-    }
+        @Test("Unregister all constraints restores default")
+        func unregisterAllRestoresDefault() {
+            let defaultOrientations = manager.supportedInterfaceOrientations
+            let id1 = UUID()
+            let id2 = UUID()
+            let id3 = UUID()
 
-    func testUnregisterAllConstraintsRestoresDefault() {
-        let defaultOrientations = manager.supportedInterfaceOrientations
-        let id1 = UUID()
-        let id2 = UUID()
-        let id3 = UUID()
+            manager.register(orientations: .portrait, id: id1)
+            manager.register(orientations: .portrait, id: id2)
+            manager.register(orientations: .portrait, id: id3)
 
-        manager.register(orientations: .portrait, id: id1)
-        manager.register(orientations: .portrait, id: id2)
-        manager.register(orientations: .portrait, id: id3)
+            manager.unregister(orientationsWithID: id1)
+            manager.unregister(orientationsWithID: id2)
+            manager.unregister(orientationsWithID: id3)
 
-        manager.unregister(orientationsWithID: id1)
-        manager.unregister(orientationsWithID: id2)
-        manager.unregister(orientationsWithID: id3)
-
-        XCTAssertEqual(manager.supportedInterfaceOrientations, defaultOrientations)
+            #expect(manager.supportedInterfaceOrientations == defaultOrientations)
+        }
     }
 
     // MARK: - Re-registration
 
-    func testReregisterWithSameIdUpdatesConstraint() {
-        let id = UUID()
+    @Suite("Re-registration", .tags(.registration))
+    @MainActor
+    struct ReRegistration {
+        private let manager = InterfaceOrientationManager.shared
 
-        manager.register(orientations: .portrait, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .portrait)
+        @Test("Re-register with same ID updates constraint")
+        func reregisterUpdateConstraint() {
+            let id = UUID()
+            defer { manager.unregister(orientationsWithID: id) }
 
-        manager.register(orientations: .landscape, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .landscape)
+            manager.register(orientations: .portrait, id: id)
+            #expect(manager.supportedInterfaceOrientations == .portrait)
 
-        manager.unregister(orientationsWithID: id)
-    }
+            manager.register(orientations: .landscape, id: id)
+            #expect(manager.supportedInterfaceOrientations == .landscape)
+        }
 
-    func testReregisterFromPortraitToAllButUpsideDown() {
-        let id = UUID()
+        @Test("Re-register from portrait to allButUpsideDown")
+        func reregisterPortraitToAllButUpsideDown() {
+            let id = UUID()
+            defer { manager.unregister(orientationsWithID: id) }
 
-        manager.register(orientations: .portrait, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .portrait)
+            manager.register(orientations: .portrait, id: id)
+            #expect(manager.supportedInterfaceOrientations == .portrait)
 
-        manager.register(orientations: .allButUpsideDown, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .allButUpsideDown)
-
-        manager.unregister(orientationsWithID: id)
-    }
-
-    // MARK: - Configuration
-
-    func testConfigurationInitWithDefaultOrientations() {
-        let config = InterfaceOrientationManager.Configuration(defaultOrientations: .landscape)
-        XCTAssertEqual(config.defaultOrientations, .landscape)
-    }
-
-    func testConfigurationWithAllOrientations() {
-        let config = InterfaceOrientationManager.Configuration(defaultOrientations: .all)
-        XCTAssertEqual(config.defaultOrientations, .all)
-    }
-
-    func testConfigurationWithPortrait() {
-        let config = InterfaceOrientationManager.Configuration(defaultOrientations: .portrait)
-        XCTAssertEqual(config.defaultOrientations, .portrait)
-    }
-
-    func testConfigurationWithAllButUpsideDown() {
-        let config = InterfaceOrientationManager.Configuration(defaultOrientations: .allButUpsideDown)
-        XCTAssertEqual(config.defaultOrientations, .allButUpsideDown)
+            manager.register(orientations: .allButUpsideDown, id: id)
+            #expect(manager.supportedInterfaceOrientations == .allButUpsideDown)
+        }
     }
 
     // MARK: - Edge Cases
 
-    func testRegisterSameOrientationAsDefault() {
-        let defaultOrientations = manager.supportedInterfaceOrientations
-        let id = UUID()
+    @Suite("Edge Cases")
+    @MainActor
+    struct EdgeCases {
+        private let manager = InterfaceOrientationManager.shared
 
-        manager.register(orientations: defaultOrientations, id: id)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, defaultOrientations)
+        @Test("Register same orientation as default")
+        func registerSameAsDefault() {
+            let defaultOrientations = manager.supportedInterfaceOrientations
+            let id = UUID()
+            defer { manager.unregister(orientationsWithID: id) }
 
-        manager.unregister(orientationsWithID: id)
-    }
+            manager.register(orientations: defaultOrientations, id: id)
+            #expect(manager.supportedInterfaceOrientations == defaultOrientations)
+        }
 
-    func testComplexIntersectionScenario() {
-        let id1 = UUID()
-        let id2 = UUID()
-        let id3 = UUID()
+        @Test("Complex intersection with progressive unregistration")
+        func complexIntersection() {
+            let id1 = UUID()
+            let id2 = UUID()
+            let id3 = UUID()
+            defer {
+                manager.unregister(orientationsWithID: id1)
+                manager.unregister(orientationsWithID: id2)
+                manager.unregister(orientationsWithID: id3)
+            }
 
-        manager.register(orientations: [.portrait, .landscapeLeft, .landscapeRight], id: id1)
-        manager.register(orientations: [.portrait, .landscapeLeft], id: id2)
-        manager.register(orientations: .portrait, id: id3)
+            manager.register(orientations: [.portrait, .landscapeLeft, .landscapeRight], id: id1)
+            manager.register(orientations: [.portrait, .landscapeLeft], id: id2)
+            manager.register(orientations: .portrait, id: id3)
 
-        // Final intersection should be portrait
-        XCTAssertEqual(manager.supportedInterfaceOrientations, .portrait)
+            #expect(manager.supportedInterfaceOrientations == .portrait)
 
-        // Remove most restrictive
-        manager.unregister(orientationsWithID: id3)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, [.portrait, .landscapeLeft])
+            manager.unregister(orientationsWithID: id3)
+            #expect(manager.supportedInterfaceOrientations == [.portrait, .landscapeLeft])
 
-        // Remove next
-        manager.unregister(orientationsWithID: id2)
-        XCTAssertEqual(manager.supportedInterfaceOrientations, [.portrait, .landscapeLeft, .landscapeRight])
+            manager.unregister(orientationsWithID: id2)
+            #expect(
+                manager.supportedInterfaceOrientations == [.portrait, .landscapeLeft, .landscapeRight]
+            )
+        }
 
-        manager.unregister(orientationsWithID: id1)
-    }
+        @Test("Registration order does not affect result")
+        func registrationOrderIndependent() {
+            let id1 = UUID()
+            let id2 = UUID()
 
-    func testRegistrationOrderDoesNotAffectResult() {
-        let id1 = UUID()
-        let id2 = UUID()
+            manager.register(orientations: .portrait, id: id1)
+            manager.register(orientations: .allButUpsideDown, id: id2)
+            let result1 = manager.supportedInterfaceOrientations
 
-        // Register in one order
-        manager.register(orientations: .portrait, id: id1)
-        manager.register(orientations: .allButUpsideDown, id: id2)
-        let result1 = manager.supportedInterfaceOrientations
+            manager.unregister(orientationsWithID: id1)
+            manager.unregister(orientationsWithID: id2)
 
-        manager.unregister(orientationsWithID: id1)
-        manager.unregister(orientationsWithID: id2)
+            manager.register(orientations: .allButUpsideDown, id: id2)
+            manager.register(orientations: .portrait, id: id1)
+            let result2 = manager.supportedInterfaceOrientations
 
-        // Register in reverse order
-        manager.register(orientations: .allButUpsideDown, id: id2)
-        manager.register(orientations: .portrait, id: id1)
-        let result2 = manager.supportedInterfaceOrientations
+            manager.unregister(orientationsWithID: id1)
+            manager.unregister(orientationsWithID: id2)
 
-        XCTAssertEqual(result1, result2)
-        XCTAssertEqual(result1, .portrait)
-
-        manager.unregister(orientationsWithID: id1)
-        manager.unregister(orientationsWithID: id2)
+            #expect(result1 == result2)
+            #expect(result1 == .portrait)
+        }
     }
 }
