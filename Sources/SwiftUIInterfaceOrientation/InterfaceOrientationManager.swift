@@ -164,6 +164,14 @@ public final class InterfaceOrientationManager {
         updateSupportedInterfaceOrientationsIfNeeded()
     }
 
+    /// Removes all registered orientation constraints and resets to defaults.
+    ///
+    /// Used by tests (via `@testable import`) to ensure each test suite starts with clean state.
+    func removeAllConstraints() {
+        orientations.removeAll()
+        lastResolvedMask = defaultOrientations
+    }
+
     // MARK: Private API
 
     private func updateSupportedInterfaceOrientations() {

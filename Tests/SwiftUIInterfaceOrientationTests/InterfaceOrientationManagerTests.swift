@@ -13,6 +13,8 @@ struct InterfaceOrientationManagerTests {
     struct DefaultOrientations {
         private let manager = InterfaceOrientationManager.shared
 
+        init() { manager.removeAllConstraints() }
+
         @Test("Returns non-empty mask when no constraints registered")
         func defaultOrientationsNonEmpty() {
             #expect(!manager.supportedInterfaceOrientations.isEmpty)
@@ -33,17 +35,19 @@ struct InterfaceOrientationManagerTests {
     struct SingleConstraint {
         private let manager = InterfaceOrientationManager.shared
 
+        init() { manager.removeAllConstraints() }
+
         @Test(
             "Registers a single constraint",
             arguments: [
-                (UIInterfaceOrientationMask.portrait, "portrait"),
-                (.landscape, "landscape"),
-                (.allButUpsideDown, "allButUpsideDown"),
-                (.landscapeLeft, "landscapeLeft"),
-                (.landscapeRight, "landscapeRight")
+                UIInterfaceOrientationMask.portrait,
+                .landscape,
+                .allButUpsideDown,
+                .landscapeLeft,
+                .landscapeRight
             ]
         )
-        func singleConstraint(mask: UIInterfaceOrientationMask, name: String) {
+        func singleConstraint(mask: UIInterfaceOrientationMask) {
             let id = UUID()
             defer { manager.unregister(orientationsWithID: id) }
             manager.register(orientations: mask, id: id)
@@ -57,6 +61,8 @@ struct InterfaceOrientationManagerTests {
     @MainActor
     struct MultipleConstraints {
         private let manager = InterfaceOrientationManager.shared
+
+        init() { manager.removeAllConstraints() }
 
         @Test(
             "Intersection of two masks",
@@ -112,8 +118,19 @@ struct InterfaceOrientationManagerTests {
     struct EmptyIntersectionFallback {
         private let manager = InterfaceOrientationManager.shared
 
-        @Test("Conflicting constraints fall back to default")
-        func conflictingFallsBackToDefault() {
+        init() { manager.removeAllConstraints() }
+
+        @Test(
+            "Conflicting constraints fall back to default",
+            arguments: zip(
+                [UIInterfaceOrientationMask.portrait, .landscapeLeft],
+                [UIInterfaceOrientationMask.landscape, .landscapeRight]
+            )
+        )
+        func conflictingFallsBackToDefault(
+            mask1: UIInterfaceOrientationMask,
+            mask2: UIInterfaceOrientationMask
+        ) {
             let defaultOrientations = manager.supportedInterfaceOrientations
             let id1 = UUID()
             let id2 = UUID()
@@ -122,24 +139,8 @@ struct InterfaceOrientationManagerTests {
                 manager.unregister(orientationsWithID: id2)
             }
 
-            manager.register(orientations: .portrait, id: id1)
-            manager.register(orientations: .landscape, id: id2)
-
-            #expect(manager.supportedInterfaceOrientations == defaultOrientations)
-        }
-
-        @Test("LandscapeLeft and landscapeRight conflict falls back to default")
-        func landscapeLeftRightConflict() {
-            let defaultOrientations = manager.supportedInterfaceOrientations
-            let id1 = UUID()
-            let id2 = UUID()
-            defer {
-                manager.unregister(orientationsWithID: id1)
-                manager.unregister(orientationsWithID: id2)
-            }
-
-            manager.register(orientations: .landscapeLeft, id: id1)
-            manager.register(orientations: .landscapeRight, id: id2)
+            manager.register(orientations: mask1, id: id1)
+            manager.register(orientations: mask2, id: id2)
 
             #expect(manager.supportedInterfaceOrientations == defaultOrientations)
         }
@@ -151,6 +152,8 @@ struct InterfaceOrientationManagerTests {
     @MainActor
     struct Unregistration {
         private let manager = InterfaceOrientationManager.shared
+
+        init() { manager.removeAllConstraints() }
 
         @Test("Unregister restores default orientations")
         func unregisterRestoresDefault() {
@@ -216,28 +219,27 @@ struct InterfaceOrientationManagerTests {
     struct ReRegistration {
         private let manager = InterfaceOrientationManager.shared
 
-        @Test("Re-register with same ID updates constraint")
-        func reregisterUpdateConstraint() {
+        init() { manager.removeAllConstraints() }
+
+        @Test(
+            "Re-register with same ID updates constraint",
+            arguments: zip(
+                [UIInterfaceOrientationMask.portrait, .portrait],
+                [UIInterfaceOrientationMask.landscape, .allButUpsideDown]
+            )
+        )
+        func reregisterUpdateConstraint(
+            initial: UIInterfaceOrientationMask,
+            updated: UIInterfaceOrientationMask
+        ) {
             let id = UUID()
             defer { manager.unregister(orientationsWithID: id) }
 
-            manager.register(orientations: .portrait, id: id)
-            #expect(manager.supportedInterfaceOrientations == .portrait)
+            manager.register(orientations: initial, id: id)
+            #expect(manager.supportedInterfaceOrientations == initial)
 
-            manager.register(orientations: .landscape, id: id)
-            #expect(manager.supportedInterfaceOrientations == .landscape)
-        }
-
-        @Test("Re-register from portrait to allButUpsideDown")
-        func reregisterPortraitToAllButUpsideDown() {
-            let id = UUID()
-            defer { manager.unregister(orientationsWithID: id) }
-
-            manager.register(orientations: .portrait, id: id)
-            #expect(manager.supportedInterfaceOrientations == .portrait)
-
-            manager.register(orientations: .allButUpsideDown, id: id)
-            #expect(manager.supportedInterfaceOrientations == .allButUpsideDown)
+            manager.register(orientations: updated, id: id)
+            #expect(manager.supportedInterfaceOrientations == updated)
         }
     }
 
@@ -247,6 +249,8 @@ struct InterfaceOrientationManagerTests {
     @MainActor
     struct EdgeCases {
         private let manager = InterfaceOrientationManager.shared
+
+        init() { manager.removeAllConstraints() }
 
         @Test("Register same orientation as default")
         func registerSameAsDefault() {
@@ -263,11 +267,7 @@ struct InterfaceOrientationManagerTests {
             let id1 = UUID()
             let id2 = UUID()
             let id3 = UUID()
-            defer {
-                manager.unregister(orientationsWithID: id1)
-                manager.unregister(orientationsWithID: id2)
-                manager.unregister(orientationsWithID: id3)
-            }
+            defer { manager.unregister(orientationsWithID: id1) }
 
             manager.register(orientations: [.portrait, .landscapeLeft, .landscapeRight], id: id1)
             manager.register(orientations: [.portrait, .landscapeLeft], id: id2)
@@ -288,6 +288,10 @@ struct InterfaceOrientationManagerTests {
         func registrationOrderIndependent() {
             let id1 = UUID()
             let id2 = UUID()
+            defer {
+                manager.unregister(orientationsWithID: id1)
+                manager.unregister(orientationsWithID: id2)
+            }
 
             manager.register(orientations: .portrait, id: id1)
             manager.register(orientations: .allButUpsideDown, id: id2)
@@ -299,9 +303,6 @@ struct InterfaceOrientationManagerTests {
             manager.register(orientations: .allButUpsideDown, id: id2)
             manager.register(orientations: .portrait, id: id1)
             let result2 = manager.supportedInterfaceOrientations
-
-            manager.unregister(orientationsWithID: id1)
-            manager.unregister(orientationsWithID: id2)
 
             #expect(result1 == result2)
             #expect(result1 == .portrait)

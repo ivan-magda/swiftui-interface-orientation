@@ -3,7 +3,6 @@ import UIKit
 @testable import SwiftUIInterfaceOrientation
 
 @Suite("Configuration", .tags(.configuration))
-@MainActor
 struct ConfigurationTests {
     @Test(
         "Initializes with specified orientations",
