@@ -1,8 +1,7 @@
 # SwiftUI Interface Orientation
 
-[![Swift 6](https://img.shields.io/badge/Swift-6-orange.svg)](https://swift.org)
-[![iOS 14+](https://img.shields.io/badge/iOS-14+-blue.svg)](https://developer.apple.com/ios/)
-[![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
+[![Swift versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fivan-magda%2Fswiftui-interface-orientation%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/ivan-magda/swiftui-interface-orientation)
+[![Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fivan-magda%2Fswiftui-interface-orientation%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/ivan-magda/swiftui-interface-orientation)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Per-view orientation locking for SwiftUI apps. Attach one modifier to a view and it locks the app to the orientations you specify while that view is on screen.
@@ -38,6 +37,8 @@ This package replaces that bookkeeping with a single view modifier. Each view re
 - `@MainActor`-isolated manager built for the Swift 6 language mode.
 
 ## Installation
+
+Requires iOS 14 or later.
 
 ### Xcode
 
